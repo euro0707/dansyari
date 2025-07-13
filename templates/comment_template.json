@@ -1,0 +1,52 @@
+{
+  "altText": "スタンプ目的のアカウントかもしれません。どうしますか？",
+  "contents": {
+    "type": "bubble",
+    "body": {
+      "type": "box",
+      "layout": "vertical",
+      "contents": [
+        {
+          "type": "text",
+          "text": "スタンプ目当てで登録された可能性があります。通知は30日前、未読12件です。",
+          "wrap": true
+        },
+        {
+          "type": "text",
+          "text": "どうしますか？",
+          "margin": "md"
+        },
+        {
+          "type": "button",
+          "style": "primary",
+          "action": {
+            "type": "message",
+            "label": "削除候補",
+            "text": "削除候補"
+          },
+          "margin": "md"
+        },
+        {
+          "type": "button",
+          "style": "secondary",
+          "action": {
+            "type": "message",
+            "label": "非表示",
+            "text": "非表示"
+          },
+          "margin": "md"
+        },
+        {
+          "type": "button",
+          "style": "secondary",
+          "action": {
+            "type": "message",
+            "label": "残す",
+            "text": "残す"
+          },
+          "margin": "md"
+        }
+      ]
+    }
+  }
+}
