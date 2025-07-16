@@ -1,9 +1,7 @@
 import os
 import json
 import logging
-import hmac
-import hashlib
-import base64
+from app.utils import calc_line_signature, verify_line_signature
 from pathlib import Path
 
 from fastapi import FastAPI, Request, HTTPException
@@ -83,11 +81,11 @@ async def webhook(request: Request):
         logger.info("Received empty events payload – returning 200 for verification ping.")
         return JSONResponse(content={"status": "ok"})
     
-    # 署名計算デバッグ
-    expected_sig = base64.b64encode(hmac.new(CHANNEL_SECRET.encode(), body, hashlib.sha256).digest()).decode()
-    logger.info(f"Expected sig: {expected_sig}")
-    logger.info(f"Header sig  : {signature}")
-    if expected_sig != signature:
+    # 署名計算デバッグ（INFO → DEBUG に変更）
+    expected_sig = calc_line_signature(CHANNEL_SECRET, body)
+    logger.debug(f"Expected sig: {expected_sig}")
+    logger.debug(f"Header sig  : {signature}")
+    if not verify_line_signature(CHANNEL_SECRET, body, signature):
         logger.warning("Signature mismatch in debug calculation")
 
     # デバッグ情報の記録
@@ -95,15 +93,15 @@ async def webhook(request: Request):
     logger.info(f"Received body: {body_text}")
     logger.debug(f"Headers: {request.headers}")
 
-    if not signature:
-        logger.error("X-Line-Signature header is missing")
-        raise HTTPException(status_code=400, detail="X-Line-Signature header is missing")
+    # 公式 SDK に渡す前に簡易検証し、明らかに不正な場合は早期リターン
+    if not verify_line_signature(CHANNEL_SECRET, body, signature):
+        logger.error("Invalid signature (pre-check)")
+        raise HTTPException(status_code=400, detail="Invalid signature")
 
     try:
-        # シグネチャ検証と処理
-        logger.info("Handling webhook request with LINE SDK...")
+        logger.info("Handling webhook with LINE SDK…")
         handler.handle(body_text, signature)
-        logger.info("Webhook handling successful")
+        logger.debug("Webhook handling successful")
     except InvalidSignatureError:
         logger.error(f"Invalid signature: {signature}")
         logger.error(f"Using channel secret: {CHANNEL_SECRET[:5]}..." if CHANNEL_SECRET else "No channel secret")
